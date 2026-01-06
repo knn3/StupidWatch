@@ -1,97 +1,206 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# ESP32 Smartwatch Prototype — Functional Requirements & Timeline
 
-# Getting Started
+A smartwatch prototype built with **ESP32** and **cross-platform mobile apps**, focusing on core smartwatch behaviors: BLE communication, UI responsiveness, Pomodoro timer, step tracking, and Spotify remote control.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+This project uses a **hybrid mobile architecture**:
+- **Flutter** for shared UI and application logic
+- **Native Android (Kotlin)** and **Native iOS (Swift)** for BLE, background execution, Health APIs, and Spotify SDKs
+---
 
-## Step 1: Start Metro
+## 📌 Project Overview
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+**Team Size:** 2
+- **Embedded Engineer:** ESP32 firmware, FreeRTOS, LVGL, BLE, power
+- **Mobile Engineer:** Android app, BLE Central, Spotify SDK, Health APIs
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+**Primary Goal:**  
+Deliver a **stable, demo-ready MVP within 8 weeks**, with reliable BLE communication and real user-facing features on **Android and iOS**.
 
-```sh
-# Using npm
-npm start
+---
 
-# OR using Yarn
-yarn start
-```
+## 🎯 Functional Requirements
 
-## Step 2: Build and run your app
+### 1. System-Level Requirements
+| ID | Requirement |
+|----|------------|
+| SYS-1 | The system shall consist of an ESP32 smartwatch and mobile companion apps for Android and iOS |
+| SYS-2 | The watch and phone shall communicate using Bluetooth Low Energy (BLE) |
+| SYS-3 | The system shall recover automatically from BLE disconnections |
+| SYS-4 | Heavy computation (steps, Spotify, weather) shall be handled by the phone |
+| SYS-5 | The watch shall remain usable when the phone screen is off |
+| SYS-6 | The BLE protocol and GATT design shall be platform-agnostic and compatible with Android and iOS |
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+---
 
-### Android
+### 2. Watch (Embedded) Functional Requirements
 
-```sh
-# Using npm
-npm run android
+#### Boot & OS
+| ID | Requirement |
+|----|------------|
+| W-1 | The watch shall boot into FreeRTOS |
+| W-2 | The watch shall initialize LVGL and render a UI within 3 seconds |
+| W-3 | The system shall use multiple FreeRTOS tasks with defined priorities |
+| W-4 | The UI task shall have the highest priority |
 
-# OR using Yarn
-yarn android
-```
+#### User Interface
+| ID | Requirement |
+|----|------------|
+| W-UI-1 | The watch shall support touch input |
+| W-UI-2 | Touch latency shall be less than 100 ms |
+| W-UI-3 | Users shall be able to swipe between screens |
+| W-UI-4 | Screen transitions shall not block BLE communication |
 
-### iOS
+#### BLE
+| ID | Requirement |
+|----|------------|
+| W-BLE-1 | The watch shall act as a BLE Peripheral |
+| W-BLE-2 | The watch shall expose GATT (Generic Attribute Profile) characteristics for commands and status |
+| W-BLE-3 | The watch shall reconnect automatically after disconnection |
+| W-BLE-4 | Command round-trip shall complete without data corruption |
+| W-BLE-5 | BLE payloads shall be sized to comply with iOS MTU constraints |
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+#### Pomodoro Timer
+| ID | Requirement |
+|----|------------|
+| W-POM-1 | The watch shall support start / pause / reset of Pomodoro |
+| W-POM-2 | The timer shall continue running without phone interaction |
+| W-POM-3 | The watch shall trigger vibration when a Pomodoro completes |
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+#### Vibration
+| ID | Requirement |
+|----|------------|
+| W-VIB-1 | The vibration motor shall be driven using PWM |
+| W-VIB-2 | Vibration duration and intensity shall be configurable |
 
-```sh
-bundle install
-```
+#### Data Display
+| ID | Requirement |
+|----|------------|
+| W-DATA-1 | The watch shall display step count received from the phone |
+| W-DATA-2 | The watch shall display Spotify playback status |
 
-Then, and every time you update your native dependencies, run:
+---
 
-```sh
-bundle exec pod install
-```
+### 3. Mobile Functional Requirements (Shared)
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+| M-SH-1 | Flutter shall be used for shared UI and application logic |
+| M-SH-2 | BLE transport shall be handled natively on each platform |
+| M-SH-3 | Flutter shall communicate with native layers via platform channels |
 
-```sh
-# Using npm
-npm run ios
+#### BLE (Android)
+| ID | Requirement |
+|----|------------|
+| M-BLE-1 | The phone shall act as a BLE Central |
+| M-BLE-2 | The app shall automatically reconnect to the watch |
+| M-BLE-3 | BLE shall work in foreground and background |
+| M-BLE-4 | The app shall survive watch reboot |
 
-# OR using Yarn
-yarn ios
-```
+#### Step Tracking
+| ID | Requirement |
+|----|------------|
+| M-STEP-1 | Step count shall be retrieved via Health / Sensor API |
+| M-STEP-2 | Step data shall be periodically sent to the watch |
+| M-STEP-3 | Step calculation shall not run on the watch |
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+#### Spotify
+| ID | Requirement |
+|----|------------|
+| M-SPOT-1 | The app shall integrate Spotify SDK |
+| M-SPOT-2 | The watch shall control play / pause / skip |
+| M-SPOT-3 | Playback shall run on the phone, not the watch |
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+#### Background Operation
+| ID | Requirement |
+|----|------------|
+| M-BG-1 | BLE communication shall persist when app is backgrounded |
+| M-BG-2 | Notifications shall not block BLE or UI responsiveness |
 
-## Step 3: Modify your app
+---
 
-Now that you have successfully run the app, let's make changes!
+### 4. Mobile (iOS) Functional Requirements
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+#### BLE
+| ID | Requirement |
+|----|------------|
+| I-BLE-1 | The iOS app shall act as a BLE Central using CoreBluetooth |
+| I-BLE-2 | BLE communication shall comply with iOS background execution rules |
+| I-BLE-3 | GATT notifications shall be used for watch-to-phone updates |
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+#### Step Tracking
+| ID | Requirement |
+|----|------------|
+| I-STEP-1 | Step count shall be retrieved via HealthKit |
+| I-STEP-2 | User permission shall be explicitly requested |
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+#### Spotify
+| ID | Requirement |
+|----|------------|
+| I-SPOT-1 | The app shall integrate Spotify iOS SDK |
+| I-SPOT-2 | Playback control shall be relayed from the watch |
 
-## Congratulations! :tada:
+---
 
-You've successfully run and modified your React Native App. :partying_face:
+## 📅 Timeline & Milestones
 
-### Now what?
+### Weeks 1–2: Bluetooth Protocol & Hardware Bring-up
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+| Week | Area | Goal | Success Criteria |
+|----|------|------|----------------|
+| 1–2 | Embedded | ESP32 boots FreeRTOS & LVGL | UI renders on boot |
+| 1–2 | Embedded | BLE Peripheral implemented | Stable BLE connection |
+| 1–2 | Embedded | PWM vibration control | Phone triggers vibration |
+| 1–2 | Mobile | BLE Central implemented | Connect / disconnect works |
+| 1–2 | Mobile | Command round-trip | 100+ commands without crash |
+| 1–2 | Mobile | Pipeline | Write pipeline to verified build |
+| 1–2 | Mobile | iOS BLE Central implemented | Connect / disconnect works |
 
-# Troubleshooting
+---
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+### Week 3: OS Structure & UI Framework
 
-# Learn More
+| Week | Area | Goal | Success Criteria |
+|----|------|------|----------------|
+| 3 | Embedded | FreeRTOS task architecture | No UI freeze |
+| 3 | Embedded | LVGL screen navigation | Smooth swipe transitions |
+| 3 | Mobile | Background BLE service | Auto-reconnect works |
+| 3 | Mobile | UI responsiveness | No disconnects in background |
+| 3 | Mobile | iOS background BLE | Stable reconnect |
 
-To learn more about React Native, take a look at the following resources:
+---
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+### Week 4: First Real Features
+
+| Week | Area | Goal | Success Criteria |
+|----|------|------|----------------|
+| 4 | Embedded | App template architecture | Clean app creation |
+| 4 | Embedded | Pomodoro timer | Full cycle completes |
+| 4 | Embedded | Step display | Correct values shown |
+| 4 | Mobile | Spotify SDK | Play / pause / skip |
+| 4 | Mobile | Step data pipeline | Steps visible on watch |
+
+---
+
+## 📦 Deliverables by End of Week 4
+- Stable BLE communication
+- Touch-based UI framework
+- Fully functional Pomodoro timer
+- Spotify remote control
+- Step count displayed on watch
+
+---
+
+## 🔜 Weeks 5–8 (Planned)
+- Notification system
+- Weather integration
+- Power optimization
+- UX polish
+- Final demo & documentation
+
+---
+
+## 🛠 Tech Stack Summary
+
+**Watch:** ESP32, ESP-IDF, FreeRTOS, LVGL, BLE, PWM  
+**Mobile:** Flutter (UI & logic), Android (Kotlin), iOS (Swift), BLE Central, Spotify SDK, Health APIs
+
+> Note: Flutter is used for shared UI and application logic, while BLE, background execution, Health APIs, and Spotify SDKs are implemented natively to ensure platform reliability.
+
