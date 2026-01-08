@@ -1,0 +1,61 @@
+image: androidsdk/android-30
+
+pipelines:
+  default:
+    - parallel:
+        # ---------------------------
+        # STEP 1: React Native JS Tests
+        # ---------------------------
+        - step:
+            name: React Native JS Tests
+            caches:
+              - node
+            script:
+              - npm install
+              - npm run test:ci
+
+        # ---------------------------
+        # STEP 2: Build Debug APK
+        # ---------------------------
+        - step:
+            name: Android Debug Build
+            caches:
+              - gradle
+              - node
+            script:
+              - npm install
+              - chmod +x android/gradlew
+              - cd android
+              - ./gradlew assembleDebug
+            artifacts:
+              - android/app/build/outputs/**/*.apk
+
+        # ---------------------------
+        # STEP 3: Android Lint
+        # ---------------------------
+        - step:
+            name: Lint
+            caches:
+              - gradle
+              - node
+            script:
+              - npm install
+              - chmod +x android/gradlew
+              - cd android
+              - ./gradlew lint
+            artifacts:
+              - android/app/build/reports/**
+
+        # ---------------------------
+        # STEP 4: Android Unit Tests
+        # ---------------------------
+        - step:
+            name: Unit Tests
+            caches:
+              - gradle
+              - node
+            script:
+              - npm install
+              - chmod +x android/gradlew
+              - cd android
+              - ./gradlew testDebugUnitTest
