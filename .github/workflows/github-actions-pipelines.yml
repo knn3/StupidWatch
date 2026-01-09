@@ -52,7 +52,7 @@ jobs:
       # 7. Build Android Debug APK
       - name: Build Debug APK
         run: |
-          chmod +x android/gradlew
+          chmod +x ./gradlew
           cd android
           ./gradlew assembleDebug
         working-directory: android
@@ -67,7 +67,7 @@ jobs:
       # 9. Run Android Lint
       - name: Android Lint
         run: |
-          chmod +x android/gradlew
+          chmod +x ./gradlew
           cd android
           ./gradlew lint
         working-directory: android
@@ -82,7 +82,7 @@ jobs:
       # 11. Run Android Unit Tests
       - name: Android Unit Tests
         run: |
-          chmod +x android/gradlew
+          chmod +x ./gradlew
           cd android
           ./gradlew testDebugUnitTest
         working-directory: android
