@@ -53,7 +53,6 @@ jobs:
       - name: Build Debug APK
         run: |
           chmod +x ./gradlew
-          cd android
           ./gradlew assembleDebug
         working-directory: android
 
@@ -62,13 +61,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          path: android/app/build/outputs/**/*.apk
+          path: android/app/build/outputs/apk/**/*.apk
 
       # 9. Run Android Lint
       - name: Android Lint
         run: |
           chmod +x ./gradlew
-          cd android
           ./gradlew lint
         working-directory: android
 
@@ -83,6 +81,5 @@ jobs:
       - name: Android Unit Tests
         run: |
           chmod +x ./gradlew
-          cd android
           ./gradlew testDebugUnitTest
         working-directory: android
