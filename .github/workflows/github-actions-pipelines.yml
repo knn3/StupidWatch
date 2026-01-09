@@ -1,0 +1,88 @@
+name: React Native Android CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  react-native-ci:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        java-version: [11]
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 3. Cache node modules
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 4. Install JS dependencies
+      - name: Install JS dependencies
+        run: npm install
+
+      # 5. Run React Native JS tests
+      - name: Run JS tests
+        run: npm run test:ci
+
+      # 6. Set up Java
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java-version }}
+
+      # 7. Build Android Debug APK
+      - name: Build Debug APK
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug
+        working-directory: android
+
+      # 8. Save APK as artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-apk
+          path: android/app/build/outputs/**/*.apk
+
+      # 9. Run Android Lint
+      - name: Android Lint
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew lint
+        working-directory: android
+
+      # 10. Upload Lint reports
+      - name: Upload Lint Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-reports
+          path: android/app/build/reports/**
+
+      # 11. Run Android Unit Tests
+      - name: Android Unit Tests
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew testDebugUnitTest
+        working-directory: android
