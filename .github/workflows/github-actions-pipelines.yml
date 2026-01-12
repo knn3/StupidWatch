@@ -1,4 +1,4 @@
-name: React Native Android CI
+name: React Native Mobile CI
 
 on:
   push:
@@ -7,19 +7,23 @@ on:
     branches: [ main ]
 
 jobs:
-  react-native-ci:
+  # =========================
+  # ANDROID CI
+  # =========================
+  android-ci:
+    name: Android CI
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        java-version: [17]  # Changed from 11 to 17
+        java-version: [17]
 
     steps:
       # 1. Checkout repo
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Set up Node.js
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -38,48 +42,107 @@ jobs:
       - name: Install JS dependencies
         run: npm install
 
-      # 5. Run React Native JS tests
+      # 5. Run JS tests
       - name: Run JS tests
         run: npm run test:ci
 
-      # 6. Set up Java
+      # 6. Setup Java
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ matrix.java-version }}
 
       # 7. Build Android Debug APK
       - name: Build Debug APK
+        working-directory: android
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug
-        working-directory: android
 
-      # 8. Save APK as artifact
+      # 8. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
+          name: android-debug-apk
           path: android/app/build/outputs/apk/**/*.apk
 
-      # 9. Run Android Lint
+      # 9. Android Lint
       - name: Android Lint
+        working-directory: android
         run: |
           chmod +x ./gradlew
           ./gradlew lint
-        working-directory: android
 
-      # 10. Upload Lint reports
+      # 10. Upload Lint Reports
       - name: Upload Lint Reports
         uses: actions/upload-artifact@v4
         with:
-          name: lint-reports
+          name: android-lint-reports
           path: android/app/build/reports/**
 
-      # 11. Run Android Unit Tests
+      # 11. Android Unit Tests
       - name: Android Unit Tests
+        working-directory: android
         run: |
           chmod +x ./gradlew
           ./gradlew testDebugUnitTest
-        working-directory: android
+
+  # =========================
+  # IOS CI
+  # =========================
+  ios-ci:
+    name: iOS CI (Simulator Build)
+    runs-on: macos-latest
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 3. Cache node modules
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # 4. Cache CocoaPods
+      - name: Cache CocoaPods
+        uses: actions/cache@v3
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # 5. Install JS dependencies
+      - name: Install JS dependencies
+        run: npm install
+
+      # 6. Install CocoaPods
+      - name: Install Pods
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      # 7. Build iOS (Debug, Simulator)
+      - name: Build iOS Simulator App
+        run: |
+          xcodebuild \
+            -workspace ios/StupidWatch.xcworkspace \
+            -scheme StupidWatch \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -derivedDataPath ios/build \
+            clean build
