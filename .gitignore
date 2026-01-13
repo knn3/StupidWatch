@@ -21,6 +21,10 @@ DerivedData
 *.ipa
 *.xcuserstate
 **/.xcode.env.local
+# iOS (React Native)
+ios/Pods/
+ios/build/
+
 
 # Android/IntelliJ
 #
