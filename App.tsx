@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  PermissionsAndroid,
+  Platform
 } from 'react-native';
 import {BleManager, Device, State} from 'react-native-ble-plx';
 
@@ -38,6 +40,20 @@ export default function App() {
     };
   }, [manager]);
 
+    const requestAndroidPermissions = async () => {
+      if (Platform.OS !== 'android') return true;
+
+      const granted = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      ]);
+
+      return Object.values(granted).every(
+        (status) => status === PermissionsAndroid.RESULTS.GRANTED
+      );
+    };
+
   const upsertDevice = (d: Device) => {
     const id = d.id;
     const name = (d.name ?? d.localName ?? 'Unnamed').trim();
@@ -59,13 +75,11 @@ export default function App() {
     setIsScanning(false);
   };
 
-  // ✅ Your scan logic (filtered by name includes "nimble")
   const startScan = async () => {
     setDevices([]);
     seenIdsRef.current = new Set();
     setIsScanning(true);
 
-    // Scan everything, then filter by name in JS
     manager.startDeviceScan(null, {allowDuplicates: false}, (error, device) => {
       if (error) {
         console.log('Scan error:', error);
@@ -77,7 +91,6 @@ export default function App() {
       const name = (device.name ?? device.localName ?? '').trim();
       if (!name.toLowerCase().includes('nimble')) return;
 
-      // Dedup (optional but nice)
       if (!seenIdsRef.current.has(device.id)) {
         seenIdsRef.current.add(device.id);
       }
@@ -91,6 +104,15 @@ export default function App() {
       stopScan();
       return;
     }
+
+    if (Platform.OS === 'android') {
+        const ok = await requestAndroidPermissions();
+        if (!ok) {
+          console.log('Bluetooth permissions not granted');
+          return;
+        }
+    }
+
     if (bleState !== State.PoweredOn) {
       console.log('Bluetooth not powered on:', bleState);
       return;
@@ -98,7 +120,6 @@ export default function App() {
     await startScan();
   };
 
-  // ✅ Tap a scanned device to connect (“pair”)
   const connectToScannedDevice = async (deviceId: string) => {
     try {
       stopScan();
