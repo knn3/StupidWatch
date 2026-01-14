@@ -43,8 +43,6 @@ export function useBleScanner(options: Options = {}) {
                 PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
             ]);
 
-            console.log("Android 12+ permission result:", granted);
-
             return (
                 granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
                     PermissionsAndroid.RESULTS.GRANTED &&
@@ -53,12 +51,10 @@ export function useBleScanner(options: Options = {}) {
             );
         }
 
-        // Android 6 - 11: Location permission is required for scanning
+        // Android <12
         const loc = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
         );
-
-        console.log("Android <12 location permission result:", loc);
 
         return loc === PermissionsAndroid.RESULTS.GRANTED;
     };
@@ -145,12 +141,6 @@ export function useBleScanner(options: Options = {}) {
             setConnectedId(device.id);
             setConnectedName(
                 (device.name ?? device.localName ?? "Unnamed").trim()
-            );
-
-            console.log(
-                "Connected to:",
-                device.id,
-                device.name ?? device.localName
             );
         } catch (e) {
             console.log("Connect error:", e);
