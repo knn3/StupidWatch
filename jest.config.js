@@ -1,3 +1,13 @@
 module.exports = {
-  preset: 'react-native',
+  preset: "react-native",
+
+  transform: {
+    "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
+  },
+
+  transformIgnorePatterns: [
+    "node_modules/(?!(react-native|@react-native|react-native-ble-plx)/)",
+  ],
+
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 };
