@@ -36,15 +36,31 @@ export function useBleScanner(options: Options = {}) {
     const requestAndroidPermissions = async () => {
         if (Platform.OS !== "android") return true;
 
-        const granted = await PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        ]);
+        // Android 12+ (API 31+)
+        if (Platform.Version >= 31) {
+            const granted = await PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+            ]);
 
-        return Object.values(granted).every(
-            (status) => status === PermissionsAndroid.RESULTS.GRANTED
+            console.log("Android 12+ permission result:", granted);
+
+            return (
+                granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
+                    PermissionsAndroid.RESULTS.GRANTED &&
+                granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
+                    PermissionsAndroid.RESULTS.GRANTED
+            );
+        }
+
+        // Android 6 - 11: Location permission is required for scanning
+        const loc = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
         );
+
+        console.log("Android <12 location permission result:", loc);
+
+        return loc === PermissionsAndroid.RESULTS.GRANTED;
     };
 
     const upsertDevice = (d: Device) => {
