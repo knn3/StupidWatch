@@ -52,11 +52,17 @@ export function useBleScanner(options: Options = {}) {
         }
 
         // Android <12
-        const loc = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-        );
+        const loc = await PermissionsAndroid.request([
+            PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        ]);
 
-        return loc === PermissionsAndroid.RESULTS.GRANTED;
+        return (
+            granted[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION] ===
+                PermissionsAndroid.RESULTS.GRANTED ||
+            granted[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] ===
+                PermissionsAndroid.RESULTS.GRANTED
+        );
     };
 
     const upsertDevice = (d: Device) => {
